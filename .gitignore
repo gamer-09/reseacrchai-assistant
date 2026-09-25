@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Environment & secrets — never commit these
+.env
+.env.*
+*.env
+!.env.example
+
+# Tokens, keys & credentials
+*token*
+*Token*
+*credential*
+*secret*
+*.key
+*.pem
+*.p12
+*.pfx
+.git-credentials
+
+# Runtime data
+data/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# Build output
+dist/
+build/
+
+# OS junk
+.DS_Store
+Thumbs.db

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>uiy_31 – Chat with BOB</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="title">Chat with BOB</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div id="providerStatus" class="status">Detecting provider…</div>
+        <label class="status" style="display:flex; align-items:center; gap:4px;">
+          <input id="offlineToggle" type="checkbox" />
+          <span>Offline</span>
+        </label>
+        <a class="btn btn-secondary" href="/">Home</a>
+        <a class="btn btn-secondary" href="/code.html">Code</a>
+      </div>
+    </header>
+
+    <section class="controls">
+      <form id="providerForm" class="flex" autocomplete="off" style="display:grid; grid-template-columns: 1fr auto; gap: 12px;">
+        <label class="field">
+          <span>Provider</span>
+          <select id="provider" name="provider">
+            <option value="">Auto</option>
+            <option value="openai">OpenAI</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="ollama">Ollama (local)</option>
+          </select>
+        </label>
+        <div style="align-self:end">
+          <button id="applyProvider" class="btn btn-secondary" type="button">Apply</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="chat">
+      <div class="chat-head">
+        <div class="chat-title">Conversation</div>
+        <div id="chatStatus" class="chat-status">Idle</div>
+      </div>
+      <div id="chatLog" class="chat-log" role="log" aria-live="polite"></div>
+      <form id="chatForm" class="chat-form" autocomplete="off">
+        <textarea id="chatInput" rows="2" placeholder="Type a message… (Enter to send, Shift+Enter for newline)"></textarea>
+        <div class="chat-actions">
+          <button id="chatClear" class="btn btn-secondary" type="button">Clear</button>
+          <button id="chatSend" class="btn" type="submit">Send</button>
+        </div>
+      </form>
+    </section>
+
+    <footer class="footer">
+      <span>Type to chat with BOB. Links open in new tabs.</span>
+    </footer>
+  </div>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="/main.js"></script>
+</body>
+</html>

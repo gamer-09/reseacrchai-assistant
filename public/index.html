@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>uiy_31 – Research Console</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="title">Research Console</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div id="providerStatus" class="status">Detecting provider…</div>
+        <label class="status" style="display:flex; align-items:center; gap:4px;">
+          <input id="offlineToggle" type="checkbox" />
+          <span>Offline</span>
+        </label>
+        <a class="btn btn-secondary" href="/chat.html">Chat</a>
+        <a class="btn btn-secondary" href="/code.html">Code</a>
+        <a class="btn btn-secondary" href="/debate.html">Debate</a>
+        <a class="btn btn-secondary" href="/essay.html">Essay</a>
+        <a class="btn btn-secondary" href="/voice.html">Voice AI</a>
+      </div>
+    </header>
+
+    <section class="controls">
+      <form id="researchForm" autocomplete="off">
+        <label class="field full">
+          <span>Research query</span>
+          <input id="query" name="query" type="text" placeholder="e.g. Is intermittent fasting effective for weight loss?" required />
+        </label>
+        <label class="field">
+          <span>Provider</span>
+          <select id="provider" name="provider">
+            <option value="">Auto</option>
+            <option value="openai">OpenAI</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="ollama">Ollama (local)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Detail</span>
+          <select id="detail" name="detail">
+            <option value="brief">Brief</option>
+            <option value="standard">Standard</option>
+            <option value="deep" selected>Deep</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Max sources</span>
+          <input id="maxSources" name="maxSources" type="number" min="1" max="8" value="5" />
+        </label>
+        <button id="runBtn" class="btn" type="submit">Run Research</button>
+      </form>
+
+      <form id="fileForm" autocomplete="off" enctype="multipart/form-data">
+        <label class="field full">
+          <span>Analyze a file (text-based files work best)</span>
+          <input id="fileInput" name="file" type="file" />
+        </label>
+        <label class="field">
+          <span>Mode</span>
+          <select id="fileMode" name="mode">
+            <option value="summary" selected>Summary</option>
+            <option value="analysis">Detailed analysis</option>
+            <option value="solve">Question solver</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
+        <label id="fileCustomWrap" class="field full" hidden>
+          <span>What do you want to do with this file?</span>
+          <textarea id="fileCustom" name="instruction" rows="2" placeholder="e.g. Extract the key action items and deadlines"></textarea>
+        </label>
+        <button id="fileBtn" class="btn" type="submit">Analyze File</button>
+      </form>
+    </section>
+
+    <section class="terminal-wrap">
+      <div class="terminal" id="terminal" role="log" aria-live="polite"></div>
+    </section>
+
+    
+
+    <footer class="footer">
+      <span>Stays on this page. Click a link below to open sources.</span>
+    </footer>
+  </div>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="/main.js"></script>
+</body>
+</html>

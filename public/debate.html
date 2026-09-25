@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debate Generator - uiy_31</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="title">Debate Generator</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div id="providerStatus" class="status">Detecting provider…</div>
+        <label class="status" style="display:flex; align-items:center; gap:4px;">
+          <input id="offlineToggle" type="checkbox" />
+          <span>Offline</span>
+        </label>
+        <a class="btn btn-secondary" href="/index.html">Research</a>
+        <a class="btn btn-secondary" href="/chat.html">Chat</a>
+        <a class="btn btn-secondary" href="/code.html">Code</a>
+        <a class="btn btn-secondary" href="/essay.html">Essay</a>
+      </div>
+    </header>
+
+    <section class="controls">
+      <form id="debateForm" autocomplete="off">
+        <label class="field full">
+          <span>Debate Topic</span>
+          <input id="topic" name="topic" type="text" placeholder="e.g. Should artificial intelligence be regulated?" required />
+        </label>
+        <label class="field">
+          <span>Debate Format</span>
+          <select id="format" name="format">
+            <option value="pro_con">Pro vs Con</option>
+            <option value="multiple">Multiple Perspectives</option>
+            <option value="formal">Formal Debate</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Provider</span>
+          <select id="provider" name="provider">
+            <option value="">Auto</option>
+            <option value="openai">OpenAI</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="ollama">Ollama (local)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Detail Level</span>
+          <select id="detail" name="detail">
+            <option value="brief">Brief</option>
+            <option value="standard" selected>Standard</option>
+            <option value="deep">Deep</option>
+          </select>
+        </label>
+        <button id="generateBtn" class="btn" type="submit">Generate Debate</button>
+      </form>
+    </section>
+
+    <section class="terminal-wrap">
+      <div class="terminal" id="terminal" role="log" aria-live="polite"></div>
+    </section>
+
+    <footer class="footer">
+      <span>Generate structured debates on any topic with AI assistance.</span>
+    </footer>
+  </div>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="/main.js"></script>
+  <script>
+    // Debate-specific functionality
+    function renderStructuredText(container, rawText) {
+      const text = String(rawText || '').replace(/\r\n?/g, '\n');
+      const blocks = [];
+      let buf = [];
+      for (const line of text.split('\n')) {
+        if (line.trim() === '') {
+          if (buf.length) {
+            blocks.push(buf);
+            buf = [];
+          }
+        } else {
+          buf.push(line);
+        }
+      }
+      if (buf.length) blocks.push(buf);
+
+      const looksLikeHeading = (blockLines) => {
+        if (!blockLines || blockLines.length !== 1) return false;
+        const s = blockLines[0].trim();
+        if (!s) return false;
+        if (s.length > 110) return false;
+        if (/^motion\s*:/i.test(s)) return false;
+        return /^[A-Z0-9][A-Z0-9 ()'"\-:&/]{2,}$/.test(s);
+      };
+
+      const isMetaLine = (blockLines) => {
+        if (!blockLines || blockLines.length !== 1) return false;
+        const s = blockLines[0].trim();
+        if (!s) return false;
+        return /^motion\s*:/i.test(s);
+      };
+
+      for (const block of blocks) {
+        if (looksLikeHeading(block)) {
+          const h = document.createElement('div');
+          h.className = 'doc-heading';
+          h.textContent = block[0].trim();
+          container.appendChild(h);
+          continue;
+        }
+
+        if (isMetaLine(block)) {
+          const m = document.createElement('div');
+          m.className = 'doc-meta';
+          m.textContent = block[0].trim();
+          container.appendChild(m);
+          continue;
+        }
+
+        const p = document.createElement('p');
+        p.className = 'doc-paragraph';
+        const joined = block.join('\n');
+        const parts = joined.split('\n');
+        parts.forEach((part, idx) => {
+          if (idx > 0) p.appendChild(document.createElement('br'));
+          p.appendChild(document.createTextNode(part));
+        });
+        container.appendChild(p);
+      }
+    }
+
+    document.getElementById('debateForm').addEventListener('submit', async (e) => {
+      console.log('[DEBUG] Debate form submitted');
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+      console.log('[DEBUG] Debate form data:', data);
+      
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML = '<div>Generating debate...</div>';
+      
+      try {
+        console.log('[DEBUG] Sending debate request to /api/debate');
+        const response = await fetch('/api/debate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+        
+        console.log('[DEBUG] Debate response received:', response.status, response.statusText);
+        const result = await response.json();
+        console.log('[DEBUG] Debate response data:', result);
+        
+        if (response.ok) {
+          terminal.innerHTML = '';
+          const wrap = document.createElement('div');
+          wrap.className = 'debate-content';
+          renderStructuredText(wrap, result.debate);
+          terminal.appendChild(wrap);
+          if (window.MathJax) {
+            MathJax.typesetPromise([terminal]);
+          }
+        } else {
+          console.error('[DEBUG] Debate request failed:', result.error);
+          terminal.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+        }
+      } catch (error) {
+        console.error('[DEBUG] Debate network error:', error);
+        terminal.innerHTML = `<div class="error">Network error: ${error.message}</div>`;
+      }
+    });
+  </script>
+</body>
+</html>

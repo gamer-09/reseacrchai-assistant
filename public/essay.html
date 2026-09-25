@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Essay Generator - uiy_31</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="title">Essay Generator</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div id="providerStatus" class="status">Detecting provider…</div>
+        <label class="status" style="display:flex; align-items:center; gap:4px;">
+          <input id="offlineToggle" type="checkbox" />
+          <span>Offline</span>
+        </label>
+        <a class="btn btn-secondary" href="/index.html">Research</a>
+        <a class="btn btn-secondary" href="/chat.html">Chat</a>
+        <a class="btn btn-secondary" href="/code.html">Code</a>
+        <a class="btn btn-secondary" href="/debate.html">Debate</a>
+      </div>
+    </header>
+
+    <section class="controls">
+      <form id="essayForm" autocomplete="off">
+        <label class="field full">
+          <span>Essay Topic</span>
+          <input id="topic" name="topic" type="text" placeholder="e.g. The impact of social media on modern communication" required />
+        </label>
+        <label class="field">
+          <span>Essay Type</span>
+          <select id="essayType" name="essayType">
+            <option value="argumentative">Argumentative</option>
+            <option value="expository">Expository</option>
+            <option value="narrative">Narrative</option>
+            <option value="descriptive">Descriptive</option>
+            <option value="formal_letter">Formal Letter</option>
+            <option value="informal_letter">Informal Letter</option>
+            <option value="compare_contrast">Compare & Contrast</option>
+            <option value="cause_effect">Cause & Effect</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Word Count</span>
+          <select id="wordCount" name="wordCount">
+            <option value="300">Short (300 words)</option>
+            <option value="500" selected>Medium (500 words)</option>
+            <option value="1000">Long (1000 words)</option>
+            <option value="1500">Extended (1500 words)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Academic Level</span>
+          <select id="academicLevel" name="academicLevel">
+            <option value="high_school">High School</option>
+            <option value="college" selected>College</option>
+            <option value="university">University</option>
+            <option value="graduate">Graduate</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Provider</span>
+          <select id="provider" name="provider">
+            <option value="">Auto</option>
+            <option value="openai">OpenAI</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="ollama">Ollama (local)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Tone</span>
+          <select id="tone" name="tone">
+            <option value="formal" selected>Formal</option>
+            <option value="informal">Informal</option>
+            <option value="persuasive">Persuasive</option>
+            <option value="neutral">Neutral</option>
+          </select>
+        </label>
+        <button id="generateBtn" class="btn" type="submit">Generate Essay</button>
+      </form>
+    </section>
+
+    <section class="terminal-wrap">
+      <div class="terminal" id="terminal" role="log" aria-live="polite"></div>
+    </section>
+
+    <footer class="footer">
+      <span>Generate well-structured essays on any topic with AI assistance.</span>
+    </footer>
+  </div>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="/main.js"></script>
+  <script>
+    // Essay-specific functionality
+    function renderStructuredText(container, rawText) {
+      const text = String(rawText || '').replace(/\r\n?/g, '\n');
+      const blocks = [];
+      let buf = [];
+      for (const line of text.split('\n')) {
+        if (line.trim() === '') {
+          if (buf.length) {
+            blocks.push(buf);
+            buf = [];
+          }
+        } else {
+          buf.push(line);
+        }
+      }
+      if (buf.length) blocks.push(buf);
+
+      const looksLikeHeading = (blockLines) => {
+        if (!blockLines || blockLines.length !== 1) return false;
+        const s = blockLines[0].trim();
+        if (!s) return false;
+        if (s.length > 90) return false;
+        if (/^subject\s*:/i.test(s)) return false;
+        return /^[A-Z0-9][A-Z0-9 ()'"\-:&/]{2,}$/.test(s);
+      };
+
+      const isMetaLine = (blockLines) => {
+        if (!blockLines || blockLines.length !== 1) return false;
+        const s = blockLines[0].trim();
+        if (!s) return false;
+        return /^subject\s*:/i.test(s) || /^date\s*:/i.test(s);
+      };
+
+      for (const block of blocks) {
+        if (looksLikeHeading(block)) {
+          const h = document.createElement('div');
+          h.className = 'doc-heading';
+          h.textContent = block[0].trim();
+          container.appendChild(h);
+          continue;
+        }
+
+        if (isMetaLine(block)) {
+          const m = document.createElement('div');
+          m.className = 'doc-meta';
+          m.textContent = block[0].trim();
+          container.appendChild(m);
+          continue;
+        }
+
+        const p = document.createElement('p');
+        p.className = 'doc-paragraph';
+        const joined = block.join('\n');
+        const parts = joined.split('\n');
+        parts.forEach((part, idx) => {
+          if (idx > 0) p.appendChild(document.createElement('br'));
+          p.appendChild(document.createTextNode(part));
+        });
+        container.appendChild(p);
+      }
+    }
+
+    document.getElementById('essayForm').addEventListener('submit', async (e) => {
+      console.log('[DEBUG] Essay form submitted');
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+      console.log('[DEBUG] Essay form data:', data);
+      
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML = '<div>Generating essay...</div>';
+      
+      try {
+        console.log('[DEBUG] Sending essay request to /api/essay');
+        const response = await fetch('/api/essay', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+        
+        console.log('[DEBUG] Essay response received:', response.status, response.statusText);
+        const result = await response.json();
+        console.log('[DEBUG] Essay response data:', result);
+        
+        if (response.ok) {
+          terminal.innerHTML = '';
+          const wrap = document.createElement('div');
+          wrap.className = 'essay-content';
+          if (data && (data.essayType === 'formal_letter' || data.essayType === 'informal_letter')) {
+            wrap.classList.add('letter-mode');
+          }
+          renderStructuredText(wrap, result.essay);
+          terminal.appendChild(wrap);
+          if (window.MathJax) {
+            MathJax.typesetPromise([terminal]);
+          }
+        } else {
+          console.error('[DEBUG] Essay request failed:', result.error);
+          terminal.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+        }
+      } catch (error) {
+        console.error('[DEBUG] Essay network error:', error);
+        terminal.innerHTML = `<div class="error">Network error: ${error.message}</div>`;
+      }
+    });
+  </script>
+</body>
+</html>

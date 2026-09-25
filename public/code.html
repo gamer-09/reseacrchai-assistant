@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>uiy_31 – Code Generator</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="title">Code Generator</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div id="providerStatus" class="status">Detecting provider…</div>
+        <label class="status" style="display:flex; align-items:center; gap:4px;">
+          <input id="offlineToggle" type="checkbox" />
+          <span>Offline</span>
+        </label>
+        <a class="btn btn-secondary" href="/">Home</a>
+        <a class="btn btn-secondary" href="/chat.html">Chat</a>
+      </div>
+    </header>
+
+    <section class="controls">
+      <form id="codeForm" autocomplete="off">
+        <label class="field full">
+          <span>What do you want to build?</span>
+          <textarea id="codePrompt" rows="4" placeholder="e.g. Build a Node.js Express API with a /tasks endpoint that supports CRUD operations."></textarea>
+        </label>
+        <label class="field">
+          <span>Provider</span>
+          <select id="provider" name="provider">
+            <option value="">Auto</option>
+            <option value="openai">OpenAI</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="ollama">Ollama (local)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Language (optional)</span>
+          <input id="codeLanguage" type="text" placeholder="e.g. JavaScript, TypeScript, Python" />
+        </label>
+        <label class="field">
+          <span>Framework / Stack (optional)</span>
+          <input id="codeFramework" type="text" placeholder="e.g. React, Express, Django" />
+        </label>
+        <label class="field">
+          <span>Creativity</span>
+          <select id="codeTemperature">
+            <option value="0.1">Ultra precise</option>
+            <option value="0.2" selected>Low (recommended)</option>
+            <option value="0.4">Medium</option>
+            <option value="0.7">High</option>
+          </select>
+        </label>
+        <button id="codeRunBtn" class="btn" type="submit">Generate Code</button>
+      </form>
+    </section>
+
+    <section class="terminal-wrap">
+      <div class="terminal" id="terminal" role="log" aria-live="polite"></div>
+    </section>
+
+    <section id="previewWrap" class="preview-wrap" hidden>
+      <div class="preview-head">
+        <div class="preview-title">Preview</div>
+        <div class="preview-actions">
+          <button id="previewRunBtn" class="btn btn-secondary btn-small" type="button">Run Preview</button>
+          <button id="previewOpenBtn" class="btn btn-secondary btn-small" type="button">Open Tab</button>
+          <button id="previewCloseBtn" class="btn btn-secondary btn-small" type="button">Hide</button>
+        </div>
+      </div>
+      <div id="previewHint" class="preview-hint"></div>
+      <iframe
+        id="previewFrame"
+        class="preview-frame"
+        sandbox="allow-scripts"
+        referrerpolicy="no-referrer"
+        title="Generated code preview"
+      ></iframe>
+    </section>
+
+    <footer class="footer">
+      <span>Describe the code you want. The AI will generate code plus a short explanation. Links open in new tabs.</span>
+    </footer>
+  </div>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="/main.js"></script>
+</body>
+</html>
